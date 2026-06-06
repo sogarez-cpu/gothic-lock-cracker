@@ -33,4 +33,5 @@ Map the Links: Use the selectors next to each disc to add connections (e.g., Dis
 Set the Initial State: Drag the sliders to match the current positions of the discs on your screen.
 
 Solve: Click "Crack it!".
+
 Simulate: Click through the step-by-line solution steps in the right panel to watch the lock calibrate in real-time. The goal is achieved when all discs hit the center position (4).
