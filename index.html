@@ -1,0 +1,551 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Pick this freaking lock</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #1a1a1a;
+            color: #d5d5d5;
+            margin: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            background: #2b2b2b;
+            padding: 20px;
+            border-radius: 6px;
+            border: 2px solid #444;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        h1 {
+            font-size: 1.4em;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 0;
+            color: #e0e0e0;
+            border-bottom: 2px solid #444;
+            padding-bottom: 10px;
+        }
+        .setup-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #222;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .lock-mechanism {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #3d3d3d;
+        }
+        .plate-row {
+            display: grid;
+            grid-template-columns: 80px 1fr 160px;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .plate-row:last-child { border-bottom: none; }
+        .plate-label {
+            font-weight: bold;
+            color: #aaa;
+        }
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding-top: 10px;
+        }
+        
+        .lock-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 12px;
+            background: #333;
+            border-radius: 2px;
+            outline: none;
+            border: 1px solid #444;
+            z-index: 2;
+        }
+        .lock-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 30px;
+            border-radius: 3px;
+            background: linear-gradient(to bottom, #8e9eab, #6a7f8a);
+            border: 1px solid #bdc3c7;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .lock-slider::-webkit-slider-thumb:active { background: #3498db; }
+
+        .ticks-container {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+            box-sizing: border-box;
+            margin-top: -5px;
+            z-index: 1;
+        }
+        .tick {
+            width: 2px;
+            height: 20px;
+            background: #444;
+            position: relative;
+        }
+        .tick::after {
+            content: attr(data-val);
+            position: absolute;
+            top: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #666;
+        }
+        .tick.center {
+            background: #27ae60;
+            height: 25px;
+            margin-top: -2.5px;
+        }
+        .tick.center::after {
+            color: #2ecc71;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .link-setup {
+            font-size: 0.8em;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .active-links {
+            grid-column: 1 / -1;
+            font-size: 0.8em;
+            color: #3498db;
+            margin-top: 12px;
+            padding-left: 80px;
+        }
+        .link-tag {
+            display: inline-block;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .link-tag button {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 4px;
+            padding: 0;
+        }
+        
+        select, button {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            cursor: pointer;
+        }
+        button:hover { background: #444; }
+        
+        .btn-action {
+            background: #27ae60;
+            border: none;
+            padding: 15px 20px;
+            width: 100%;
+            font-size: 1.1em;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 15px;
+            border-radius: 4px;
+            color: white;
+            box-shadow: 0 4px 0 #1e8449;
+            transition: all 0.1s;
+        }
+        .btn-action:hover { background: #2ecc71; transform: translateY(1px); box-shadow: 0 3px 0 #1e8449; }
+        .btn-action:active { transform: translateY(3px); box-shadow: 0 1px 0 #1e8449; }
+
+        
+        .solution-panel {
+            background: #111;
+            border: 1px solid #3d3d3d;
+            border-radius: 4px;
+            padding: 15px;
+            height: 100%;
+            box-sizing: border-box;
+            align-self: stretch;
+            display: flex;
+            flex-direction: column;
+        }
+        .solution-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #2ecc71;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+            font-size: 0.95em;
+        }
+        #output {
+            font-size: 0.95em;
+            overflow-y: auto;
+            flex-grow: 1;
+            line-height: 1.4;
+        }
+        
+        
+        .step-line {
+            padding: 6px 8px;
+            border-bottom: 1px dashed #222;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            border-radius: 3px;
+            margin-bottom: 2px;
+        }
+        .step-line:hover {
+            background: #222;
+            color: #fff;
+        }
+        .step-line.active-step {
+            background: #1b4f72;
+            color: #5dade2;
+            border-left: 3px solid #3498db;
+            font-weight: bold;
+        }
+        .step-line.start-step {
+            background: #283747;
+            color: #aeaaaa;
+            border-left: 3px solid #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Steps to crack</h1>
+    
+    <div class="setup-panel">
+        <div>
+            <label for="rowCount">Disks: </label>
+            <select id="rowCount" onchange="change_row_count()">
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        
+        <div>
+            <div id="lockWrapper" class="lock-mechanism"></div>
+            <button class="btn-action" onclick="calculate_path()">Crack it!</button>
+        </div>
+        
+        <div class="solution-panel">
+            <div class="solution-title">📋 Steps</div>
+            <div id="output">Change disk positions and press the button to display steps.</div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+let current_rows_count = 4;
+let global_states_log = []; 
+
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audio_ctx = null;
+
+window.onload = function() {
+    const saved_count = localStorage.getItem('lock_rowCount');
+    if (saved_count) {
+        current_rows_count = parseInt(saved_count);
+        document.getElementById('rowCount').value = current_rows_count;
+    }
+
+    const saved_connections = localStorage.getItem('lock_connections');
+    if (saved_connections) {
+        window.row_connections = JSON.parse(saved_connections);
+    } else {
+        init_empty_connections();
+    }
+
+    generate_lock_ui();
+};
+
+function init_empty_connections() {
+    window.row_connections = {};
+    for(let i = 1; i <= 8; i++) window.row_connections[i] = [];
+}
+
+function change_row_count() {
+    current_rows_count = parseInt(document.getElementById('rowCount').value);
+    localStorage.setItem('lock_rowCount', current_rows_count);
+    validate_connections();
+    generate_lock_ui();
+    save_to_storage();
+}
+
+function validate_connections() {
+    if (!window.row_connections) init_empty_connections();
+    for (let i = 1; i <= 8; i++) {
+        if (!window.row_connections[i]) window.row_connections[i] = [];
+        window.row_connections[i] = window.row_connections[i].filter(c => c.to <= current_rows_count);
+    }
+}
+
+function generate_lock_ui() {
+    const wrapper = document.getElementById('lockWrapper');
+    wrapper.innerHTML = ''; 
+
+    for (let i = 1; i <= current_rows_count; i++) {
+        const row_div = document.createElement('div');
+        row_div.className = 'plate-row';
+        
+        const label = document.createElement('div');
+        label.className = 'plate-label';
+        label.innerText = `DISK ${i}`;
+        row_div.appendChild(label);
+        
+        const slider_cont = document.createElement('div');
+        slider_cont.className = 'slider-container';
+        
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.className = 'lock-slider';
+        slider.id = `slider-${i}`;
+        slider.min = '1';
+        slider.max = '7';
+        
+        const savedVal = localStorage.getItem(`lock_slider_${current_rows_count}_${i}`);
+        slider.value = savedVal ? savedVal : '4';
+        
+        slider.oninput = function() {
+            localStorage.setItem(`lock_slider_${current_rows_count}_${i}`, this.value);
+            clear_active_steps();
+        };
+        
+        const ticks_cont = document.createElement('div');
+        ticks_cont.className = 'ticks-container';
+        for (let v = 1; v <= 7; v++) {
+            const tick = document.createElement('div');
+            tick.className = 'tick';
+            tick.setAttribute('data-val', v);
+            if (v === 4) tick.classList.add('center');
+            ticks_cont.appendChild(tick);
+        }
+        
+        slider_cont.appendChild(slider);
+        slider_cont.appendChild(ticks_cont);
+        row_div.appendChild(slider_cont);
+        
+        const link_setup = document.createElement('div');
+        link_setup.className = 'link-setup';
+        link_setup.innerHTML = `
+            <span>🡆</span>
+            <select id="link-target-${i}" style="width:55px;">${get_target_options(i, current_rows_count)}</select>
+            <select id="link-dir-${i}" style="width:55px;">
+                <option value="right">🡆</option>
+                <option value="left">🡄</option>
+            </select>
+            <button type="button" onclick="add_connection(${i})">+</button>
+        `;
+        row_div.appendChild(link_setup);
+        
+        const active_links_div = document.createElement('div');
+        active_links_div.className = 'active-links';
+        active_links_div.id = `connections-list-${i}`;
+        
+        wrapper.appendChild(row_div);
+        wrapper.appendChild(active_links_div);
+        
+        render_connections_list(i);
+    }
+    document.getElementById('output').innerHTML = "Change disk positions and press the analysis button to display steps.";
+}
+
+function get_target_options(currentRow, maxRows) {
+    let options = '';
+    for (let i = 1; i <= maxRows; i++) {
+        if (i !== currentRow) options += `<option value="${i}">Д${i}</option>`;
+    }
+    return options;
+}
+
+function add_connection(fromRow) {
+    const toRow = parseInt(document.getElementById(`link-target-${fromRow}`).value);
+    const direction = document.getElementById(`link-dir-${fromRow}`).value;
+    if (!window.row_connections[fromRow]) window.row_connections[fromRow] = [];
+    if (window.row_connections[fromRow].some(c => c.to === toRow)) return;
+    
+    window.row_connections[fromRow].push({ to: toRow, dir: direction });
+    render_connections_list(fromRow);
+    save_to_storage();
+}
+
+function remove_connection(fromRow, toRow) {
+    window.row_connections[fromRow] = window.row_connections[fromRow].filter(c => c.to !== toRow);
+    render_connections_list(fromRow);
+    save_to_storage();
+}
+
+function render_connections_list(row) {
+    const listDiv = document.getElementById(`connections-list-${row}`);
+    const conns = window.row_connections[row] || [];
+    if (conns.length === 0) { listDiv.innerHTML = ''; return; }
+    let html = '';
+    conns.forEach(c => {
+        const dirIcon = c.dir === 'right' ? '🡆' : '🡄';
+        html += `<span class="link-tag">🡆 → Д${c.to} ${dirIcon}<button onclick="remove_connection(${row}, ${c.to})">×</button></span>`;
+    });
+    listDiv.innerHTML = html;
+}
+
+function save_to_storage() {
+    localStorage.setItem('lock_connections', JSON.stringify(window.row_connections));
+}
+
+function preview_state(stateArray) {
+    stateArray.forEach((val, index) => {
+        const slider = document.getElementById(`slider-${index + 1}`);
+        if (slider) slider.value = val;
+    });
+}
+
+function clear_active_steps() {
+    document.querySelectorAll('.step-line').forEach(el => el.classList.remove('active-step'));
+}
+
+function select_step(element, stateIndex) {
+    clear_active_steps();
+    element.classList.add('active-step');
+    preview_state(global_states_log[stateIndex]);
+}
+
+
+
+function shift_value(val, dir) {
+    if (dir === 'right') return val > 1 ? val - 1 : null;
+    return val < 7 ? val + 1 : null;
+}
+
+function make_move(state, rowIndex, actionDir) {
+    let newState = [...state];
+    let nextVal = shift_value(newState[rowIndex], actionDir);
+    if (nextVal === null) return null;
+    newState[rowIndex] = nextVal;
+    
+    const connections = window.row_connections[rowIndex + 1] || [];
+    for (let conn of connections) {
+        const targetIdx = conn.to - 1;
+        let targetDir = conn.dir;
+        if (actionDir === 'left') targetDir = (targetDir === 'right') ? 'left' : 'right';
+        
+        let targetNextVal = shift_value(newState[targetIdx], targetDir);
+        if (targetNextVal === null) return null; 
+        newState[targetIdx] = targetNextVal;
+    }
+    return newState;
+}
+
+function calculate_path() {
+    let start_state = [];
+    for (let i = 1; i <= current_rows_count; i++) {
+        start_state.push(parseInt(document.getElementById(`slider-${i}`).value));
+    }
+    
+    const target_state_str = Array(current_rows_count).fill(4).join(',');
+    let queue = [{ state: start_state, path: [], statesHistory: [start_state] }];
+    let visited = new Set([start_state.join(',')]);
+    
+    let solved = false;
+    let final_path = [];
+    let final_states_log = [];
+    let iterations = 0;
+
+    while (queue.length > 0 && iterations < 300000) {
+        iterations++;
+        let current = queue.shift();
+        
+        if (current.state.join(',') === target_state_str) {
+            final_path = current.path;
+            final_states_log = current.statesHistory;
+            solved = true;
+            break;
+        }
+        
+        for (let i = 0; i < current_rows_count; i++) {
+            for (let dir of ['right', 'left']) {
+                let next_state = make_move(current.state, i, dir);
+                if (next_state !== null) {
+                    let state_str = next_state.join(',');
+                    if (!visited.has(state_str)) {
+                        visited.add(state_str);
+                        let dir_text = dir === 'right' ? 'RIGHT (🡆)' : 'LEFT (🡄)';
+                        queue.push({
+                            state: next_state,
+                            path: [...current.path, `Disk ${i + 1} ${dir_text}`],
+                            statesHistory: [...current.statesHistory, next_state]
+                        });
+                    }
+                }
+            }
+        }
+    }
+    
+    const output = document.getElementById('output');
+    
+    if (solved) {
+        global_states_log = final_states_log; 
+        
+        if (final_path.length === 0) {
+            output.innerHTML = "<span style='color:#2ecc71;'>🔓 Mechanism is already centered!</span>";
+        } else {
+            let html = `<span style='color:#2ecc71; font-weight:bold;'>🔓 FOUND (Steps: ${final_path.length}):</span>\n<p style='font-size:0.8em; color:#888; margin:5px 0 10px 0;'>Click steps to simulate:</p>`;
+            html += `<div class="step-line start-step active-step" onclick="select_step(this, 0)">0. Initial position</div>`;
+            final_path.forEach((step, idx) => {
+                html += `<div class="step-line" onclick="select_step(this, ${idx + 1})">${idx + 1}. ${step}</div>`;
+            });
+            output.innerHTML = html;
+        }
+    } else {
+        output.innerHTML = "<span style='color:#e74c3c; font-weight:bold;'>❌ ANALYSIS ERROR.</span>\n\nWith this connection configuration, returning all disks to the center is impossible.";
+    }
+}
+</script>
+
+</body>
+</html>
