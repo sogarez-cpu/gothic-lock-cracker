@@ -1,5 +1,5 @@
-﻿<!DOCTYPE html>
-<html lang="ru">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Pick this freaking lock</title>
@@ -40,14 +40,17 @@
             border-radius: 4px;
             margin-bottom: 15px;
         }
-        
+        .setup-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
         .main-layout {
             display: grid;
             grid-template-columns: 1fr 380px;
             gap: 20px;
             align-items: start;
         }
-
         .lock-mechanism {
             background: #1e1e1e;
             padding: 15px;
@@ -74,7 +77,6 @@
             position: relative;
             padding-top: 10px;
         }
-        
         .lock-slider {
             -webkit-appearance: none;
             width: 100%;
@@ -97,7 +99,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
         .lock-slider::-webkit-slider-thumb:active { background: #3498db; }
-
         .ticks-container {
             width: 100%;
             display: flex;
@@ -132,7 +133,6 @@
             font-weight: bold;
             font-size: 12px;
         }
-
         .link-setup {
             font-size: 0.8em;
             display: flex;
@@ -165,7 +165,6 @@
             margin-left: 4px;
             padding: 0;
         }
-        
         select, button {
             background: #333;
             color: #fff;
@@ -176,7 +175,15 @@
             cursor: pointer;
         }
         button:hover { background: #444; }
-        
+        .btn-reset {
+            background: #c0392b;
+            border: 1px solid #962d22;
+            padding: 4px 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.85em;
+        }
+        .btn-reset:hover { background: #e74c3c; }
         .btn-action {
             background: #27ae60;
             border: none;
@@ -193,8 +200,6 @@
         }
         .btn-action:hover { background: #2ecc71; transform: translateY(1px); box-shadow: 0 3px 0 #1e8449; }
         .btn-action:active { transform: translateY(3px); box-shadow: 0 1px 0 #1e8449; }
-
-        
         .solution-panel {
             background: #111;
             border: 1px solid #3d3d3d;
@@ -221,8 +226,6 @@
             flex-grow: 1;
             line-height: 1.4;
         }
-        
-        
         .step-line {
             padding: 6px 8px;
             border-bottom: 1px dashed #222;
@@ -251,19 +254,22 @@
 <body>
 
 <div class="container">
-    <h1>Steps to crack</h1>
+    <h1>Gothic 1 Remake lock cracking assistance</h1>
     
     <div class="setup-panel">
-        <div>
-            <label for="rowCount">Disks: </label>
-            <select id="rowCount" onchange="change_row_count()">
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-            </select>
+        <div class="setup-controls">
+            <button class="btn-reset" onclick="reset_to_default()">Reset</button>
+            <div>
+                <label for="rowCount">Disks: </label>
+                <select id="rowCount" onchange="change_row_count()">
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -286,9 +292,6 @@
 let current_rows_count = 4;
 let global_states_log = []; 
 
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-let audio_ctx = null;
-
 window.onload = function() {
     const saved_count = localStorage.getItem('lock_rowCount');
     if (saved_count) {
@@ -309,6 +312,15 @@ window.onload = function() {
 function init_empty_connections() {
     window.row_connections = {};
     for(let i = 1; i <= 8; i++) window.row_connections[i] = [];
+}
+
+function reset_to_default() {
+    localStorage.clear();
+    current_rows_count = 4;
+    document.getElementById('rowCount').value = 4;
+    init_empty_connections();
+    global_states_log = [];
+    generate_lock_ui();
 }
 
 function change_row_count() {
@@ -350,8 +362,8 @@ function generate_lock_ui() {
         slider.min = '1';
         slider.max = '7';
         
-        const savedVal = localStorage.getItem(`lock_slider_${current_rows_count}_${i}`);
-        slider.value = savedVal ? savedVal : '4';
+        const saved_val = localStorage.getItem(`lock_slider_${current_rows_count}_${i}`);
+        slider.value = saved_val ? saved_val : '4';
         
         slider.oninput = function() {
             localStorage.setItem(`lock_slider_${current_rows_count}_${i}`, this.value);
@@ -397,49 +409,49 @@ function generate_lock_ui() {
     document.getElementById('output').innerHTML = "Change disk positions and press the analysis button to display steps.";
 }
 
-function get_target_options(currentRow, maxRows) {
+function get_target_options(current_row, max_rows) {
     let options = '';
-    for (let i = 1; i <= maxRows; i++) {
-        if (i !== currentRow) options += `<option value="${i}">Д${i}</option>`;
+    for (let i = 1; i <= max_rows; i++) {
+        if (i !== current_row) options += `<option value="${i}">D${i}</option>`;
     }
     return options;
 }
 
-function add_connection(fromRow) {
-    const toRow = parseInt(document.getElementById(`link-target-${fromRow}`).value);
-    const direction = document.getElementById(`link-dir-${fromRow}`).value;
-    if (!window.row_connections[fromRow]) window.row_connections[fromRow] = [];
-    if (window.row_connections[fromRow].some(c => c.to === toRow)) return;
+function add_connection(from_row) {
+    const to_row = parseInt(document.getElementById(`link-target-${from_row}`).value);
+    const direction = document.getElementById(`link-dir-${from_row}`).value;
+    if (!window.row_connections[from_row]) window.row_connections[from_row] = [];
+    if (window.row_connections[from_row].some(c => c.to === to_row)) return;
     
-    window.row_connections[fromRow].push({ to: toRow, dir: direction });
-    render_connections_list(fromRow);
+    window.row_connections[from_row].push({ to: to_row, dir: direction });
+    render_connections_list(from_row);
     save_to_storage();
 }
 
-function remove_connection(fromRow, toRow) {
-    window.row_connections[fromRow] = window.row_connections[fromRow].filter(c => c.to !== toRow);
-    render_connections_list(fromRow);
+function remove_connection(from_row, to_row) {
+    window.row_connections[from_row] = window.row_connections[from_row].filter(c => c.to !== to_row);
+    render_connections_list(from_row);
     save_to_storage();
 }
 
 function render_connections_list(row) {
-    const listDiv = document.getElementById(`connections-list-${row}`);
+    const list_div = document.getElementById(`connections-list-${row}`);
     const conns = window.row_connections[row] || [];
-    if (conns.length === 0) { listDiv.innerHTML = ''; return; }
+    if (conns.length === 0) { list_div.innerHTML = ''; return; }
     let html = '';
     conns.forEach(c => {
-        const dirIcon = c.dir === 'right' ? '🡆' : '🡄';
-        html += `<span class="link-tag">🡆 → Д${c.to} ${dirIcon}<button onclick="remove_connection(${row}, ${c.to})">×</button></span>`;
+        const dir_icon = c.dir === 'right' ? '🡆' : '🡄';
+        html += `<span class="link-tag">🡆 → D${c.to} ${dir_icon}<button onclick="remove_connection(${row}, ${c.to})">×</button></span>`;
     });
-    listDiv.innerHTML = html;
+    list_div.innerHTML = html;
 }
 
 function save_to_storage() {
     localStorage.setItem('lock_connections', JSON.stringify(window.row_connections));
 }
 
-function preview_state(stateArray) {
-    stateArray.forEach((val, index) => {
+function preview_state(state_array) {
+    state_array.forEach((val, index) => {
         const slider = document.getElementById(`slider-${index + 1}`);
         if (slider) slider.value = val;
     });
@@ -449,36 +461,34 @@ function clear_active_steps() {
     document.querySelectorAll('.step-line').forEach(el => el.classList.remove('active-step'));
 }
 
-function select_step(element, stateIndex) {
+function select_step(element, state_index) {
     clear_active_steps();
     element.classList.add('active-step');
-    preview_state(global_states_log[stateIndex]);
+    preview_state(global_states_log[state_index]);
 }
-
-
 
 function shift_value(val, dir) {
     if (dir === 'right') return val > 1 ? val - 1 : null;
     return val < 7 ? val + 1 : null;
 }
 
-function make_move(state, rowIndex, actionDir) {
-    let newState = [...state];
-    let nextVal = shift_value(newState[rowIndex], actionDir);
-    if (nextVal === null) return null;
-    newState[rowIndex] = nextVal;
+function make_move(state, row_index, action_dir) {
+    let new_state = [...state];
+    let next_val = shift_value(new_state[row_index], action_dir);
+    if (next_val === null) return null;
+    new_state[row_index] = next_val;
     
-    const connections = window.row_connections[rowIndex + 1] || [];
+    const connections = window.row_connections[row_index + 1] || [];
     for (let conn of connections) {
-        const targetIdx = conn.to - 1;
-        let targetDir = conn.dir;
-        if (actionDir === 'left') targetDir = (targetDir === 'right') ? 'left' : 'right';
+        const target_idx = conn.to - 1;
+        let target_dir = conn.dir;
+        if (action_dir === 'left') target_dir = (target_dir === 'right') ? 'left' : 'right';
         
-        let targetNextVal = shift_value(newState[targetIdx], targetDir);
-        if (targetNextVal === null) return null; 
-        newState[targetIdx] = targetNextVal;
+        let target_next_val = shift_value(new_state[target_idx], target_dir);
+        if (target_next_val === null) return null; 
+        new_state[target_idx] = target_next_val;
     }
-    return newState;
+    return new_state;
 }
 
 function calculate_path() {
